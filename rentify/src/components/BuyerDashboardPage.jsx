@@ -90,7 +90,7 @@ const BuyerDashboardPage = () => {
       const isLiked = property.likedBy.includes(currentUser.uid);
 
       await axios.patch(
-        `/api/properties/${id}/like`,
+        `${backendUrl}/properties/${id}/like`,
         {},
         {
           headers: {
@@ -143,7 +143,7 @@ const BuyerDashboardPage = () => {
         throw new Error("User not authenticated");
       }
       const response = await axios.post(
-        `/api/properties/${id}/interested`,
+        `${backendUrl}/properties/${id}/interested`,
         {},
         {
           headers: {
