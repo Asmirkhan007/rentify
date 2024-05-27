@@ -58,7 +58,6 @@ const BuyerDashboardPage = () => {
       setLoading(false);
     }
   };
-
   const handleSearch = (value) => {
     setFilters((prevFilters) => ({ ...prevFilters, place: value }));
   };
@@ -77,11 +76,11 @@ const BuyerDashboardPage = () => {
       );
     });
     setFilteredProperties(filtered);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page on new filters
   };
 
   const handleLike = async (id) => {
-    setLoading(true);
+    setLoading(true); // Start loading
     try {
       if (!currentUser || !currentUser.token) {
         throw new Error("User not authenticated");
@@ -90,12 +89,8 @@ const BuyerDashboardPage = () => {
       const isLiked = property.likedBy.includes(currentUser.uid);
 
       await axios.patch(
-        `${backendUrl}/properties/${id}/like`,
-        {
-          likedBy: isLiked
-            ? property.likedBy.filter((uid) => uid !== currentUser.uid)
-            : [...property.likedBy, currentUser.uid],
-        },
+        `/api/properties/${id}/like`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${currentUser.token}`,
@@ -117,13 +112,64 @@ const BuyerDashboardPage = () => {
         )
       );
 
+      setFilteredProperties((prevFilteredProperties) =>
+        prevFilteredProperties.map((property) =>
+          property.id === id
+            ? {
+                ...property,
+                likeCount: property.likeCount + (isLiked ? -1 : 1),
+                likedBy: isLiked
+                  ? property.likedBy.filter((uid) => uid !== currentUser.uid)
+                  : [...property.likedBy, currentUser.uid],
+              }
+            : property
+        )
+      );
+
       message.success(`Property ${isLiked ? "unliked" : "liked"}!`);
     } catch (error) {
       console.error("Failed to like property", error);
       message.error("Failed to like property");
     } finally {
-      setLoading(false);
+      setLoading(false); // End loading
     }
+  };
+
+  const handleInterest = async (id) => {
+    setLoading(true); // Start loading
+    try {
+      if (!currentUser || !currentUser.token) {
+        throw new Error("User not authenticated");
+      }
+      const response = await axios.post(
+        `/api/properties/${id}/interested`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${currentUser.token}`,
+          },
+        }
+      );
+      setSellerDetails(response.data);
+      message.success("Seller details retrieved!");
+    } catch (error) {
+      console.error("Failed to register interest", error);
+      if (error.message === "User not authenticated") {
+        message.error(
+          "You must be logged in to express interest in a property."
+        );
+        // Optionally, redirect to the login page
+        // navigate('/login');
+      } else {
+        message.error("Failed to register interest");
+      }
+    } finally {
+      setLoading(false); // End loading
+    }
+  };
+
+  const handleOk = () => {
+    setSellerDetails(null);
   };
 
   const handlePageChange = (page) => {
@@ -137,7 +183,8 @@ const BuyerDashboardPage = () => {
 
   return (
     <div>
-      <AppBar />
+      <AppBar onAddProperty={() => console.log("Add Property Clicked")} />{" "}
+      {/* Add AppBar */}
       <div style={{ padding: "20px" }}>
         <div
           style={{
@@ -149,7 +196,7 @@ const BuyerDashboardPage = () => {
         >
           <Search
             placeholder="Search by place"
-            onSearch={handleSearch}
+            onChange={(e) => handleSearch(e.target.value)}
             enterButton
             style={{ width: 400 }}
           />
@@ -180,44 +227,76 @@ const BuyerDashboardPage = () => {
             </Select>
           </div>
         </div>
-        <Row gutter={[16, 16]}>
-          {currentData.map((property) => (
-            <Col xs={24} sm={12} md={8} lg={6} key={property.id}>
-              <Card
-                hoverable
-                cover={<img alt="property" src={placeholderImage} />}
-                actions={[
-                  <Button
-                    type="primary"
-                    onClick={() => handleLike(property.id)}
-                    icon={
-                      property.likedBy.includes(currentUser.uid) ? (
-                        <LikeFilled />
-                      ) : (
-                        <LikeOutlined />
-                      )
-                    }
+        {currentData.length === 0 ? (
+          <div style={{ textAlign: "center", marginTop: 50 }}>
+            <Empty description="No properties available yet" />
+          </div>
+        ) : (
+          <>
+            <Row gutter={[16, 16]}>
+              {currentData.map((property) => (
+                <Col xs={24} sm={12} md={8} lg={6} key={property.id}>
+                  <Card
+                    hoverable
+                    cover={<img alt="property" src={placeholderImage} />}
+                    actions={[
+                      <Button
+                        type="primary"
+                        onClick={() => handleLike(property.id)}
+                        icon={
+                          property.likedBy.includes(currentUser.uid) ? (
+                            <LikeFilled />
+                          ) : (
+                            <LikeOutlined />
+                          )
+                        }
+                      >
+                        {property.likeCount}
+                      </Button>,
+                      <Button
+                        type="default"
+                        onClick={() => handleInterest(property.id)}
+                      >
+                        I'm Interested
+                      </Button>,
+                    ]}
                   >
-                    {property.likeCount}
-                  </Button>,
-                ]}
-              >
-                <Meta
-                  title={property.place}
-                  description={`Area: ${property.area}, Bedrooms: ${property.numberOfBedrooms}, Bathrooms: ${property.numberOfBathrooms}`}
-                />
-              </Card>
-            </Col>
-          ))}
-        </Row>
-        <Pagination
-          current={currentPage}
-          pageSize={pageSize}
-          total={filteredProperties.length}
-          onChange={handlePageChange}
-          style={{ marginTop: "20px", textAlign: "center" }}
-        />
+                    <Meta
+                      title={property.place}
+                      description={`Area: ${property.area}, Bedrooms: ${property.numberOfBedrooms}, Bathrooms: ${property.numberOfBathrooms}`}
+                    />
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+            <Pagination
+              current={currentPage}
+              pageSize={pageSize}
+              total={filteredProperties.length}
+              onChange={handlePageChange}
+              style={{ marginTop: "20px", textAlign: "center" }}
+            />
+          </>
+        )}
       </div>
+      {sellerDetails && (
+        <Modal
+          title="Seller Details"
+          visible={!!sellerDetails}
+          onOk={handleOk}
+          onCancel={handleOk}
+        >
+          <p>
+            <strong>Name:</strong> {sellerDetails.sellerName}
+          </p>
+          <p>
+            <strong>Email:</strong> {sellerDetails.sellerEmail}
+          </p>
+          <p>
+            <strong>Phone:</strong> {sellerDetails.sellerPhone}
+          </p>
+        </Modal>
+      )}
     </div>
   );
 };
