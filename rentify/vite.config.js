@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://rentify-backend-production-cac5.up.railway.app", // Your backend server
+        target: process.env.VITE_BACKEND_URL, // Your backend server
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },

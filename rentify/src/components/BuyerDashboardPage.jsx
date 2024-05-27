@@ -48,6 +48,7 @@ const BuyerDashboardPage = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${backendUrl}/properties`);
+      console.log("Backend URL:", backendUrl);
       setProperties(response.data);
       setFilteredProperties(response.data);
     } catch (error) {
