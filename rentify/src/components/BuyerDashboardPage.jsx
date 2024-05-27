@@ -27,6 +27,7 @@ const BuyerDashboardPage = () => {
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(8);
+  const [sellerDetails, setSellerDetails] = useState(null);
   const [filters, setFilters] = useState({
     place: "",
     bedrooms: "",
