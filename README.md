@@ -12,7 +12,7 @@ Rentify is a full-stack real estate rental application designed to simplify the 
   - Property Listings for Sellers and Buyers
   - Interactive UI with Real-time Data Interaction
 - **Deployment**: Hosted on Vercel
-- **Live URL**: [rentify-baupkc8y2-asmirkhan007s-projects.vercel.app](https://rentify-baupkc8y2-asmirkhan007s-projects.vercel.app)
+- **Live URL**: [rentify-baupkc8y2-asmirkhan007s-projects.vercel.app](https://rentify-ten-flame.vercel.app/)
 
 ### Backend
 - **Technology**: NestJS
